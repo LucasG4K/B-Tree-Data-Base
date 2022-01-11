@@ -71,6 +71,7 @@ int main() {
 
 		switch (opcao) {
 			case 1:
+				// incompleto
 				printf("#INSERIR\n");
 				break;
 			
@@ -79,18 +80,18 @@ int main() {
 				printf("CPF que deseja remover: ");
 				scanf("%d", &r.key);
 				Pesquisa(btree, &r);
+				// faz a pesquisa, se retornar -1 não foi encontrado
 				if (r.key != -1) {
-					printf("Diretório -> %s\nCliente: ", r.nome);
+					printf("Diretório -> %s\n", r.nome);
 					palavras = (char*)malloc(500 * sizeof(char));
 					removerNoArquivo(r.nome, r.key, palavras);
 					file = fopen(r.nome, "w");
 					if (file != NULL) {
-						printf("%s ", palavras);
 						fputs(palavras, file);
+						printf("Cliente removido!\n");
 					}
-					// remove(r.nome);
+					fclose(file);
 				}
-				fclose(file);
 				break;
 
 			case 3:
@@ -136,6 +137,7 @@ void MesclarDados(Lista *l, Pagina **btree) {
 
 		sprintf(texto, "%d-", aux->data.val); // cpf
 		sprintf(salvar, "%d-", 12 + (rand() % 90)); // idade
+		// mescla cpf, idade e nome na variável
 		strcat(item.aux, texto);
 		strcat(item.aux, salvar);
 		strcat(item.aux, aux->data.nome);
@@ -143,8 +145,10 @@ void MesclarDados(Lista *l, Pagina **btree) {
 		if (++contador == 10) {
 			r.nome = (char*)malloc(50 * sizeof(char));
 			y = aux->data.val;
+			// nome do arquivo depende do limite inferior e superior do arquivo pois será o índice de procura
 			sprintf(str, "src/data/organizador/%d-%d.txt", x, y);
 
+			// cria cada arquivo com 10 entradas de dados
 			file = fopen(str, "w");
 			if (file != NULL)
 				fputs(item.aux, file);
@@ -153,11 +157,11 @@ void MesclarDados(Lista *l, Pagina **btree) {
 			r.key = x;
 			r.lim = y;
 			strcpy(r.nome, str);
+			// insere os intervalos na árvore
 			Insere(btree, r);
-			item.aux = (char*)malloc(50 * 10 * sizeof(char)); //recebe tudo
+			item.aux = (char*)malloc(50 * 10 * sizeof(char));
 			contador = 0;
 		}
-
 		aux = aux->prox;
 	}
 }
@@ -177,16 +181,20 @@ void removerNoArquivo(char *arquivo, int cpf, char *dados) {
 		printf("Falha ao abrir arquivo de pesquisa!\n");
 	else {
 		while (!feof(file)) {
+			// monta a linha
 			result = fgets(linha, 100, file);
 			if (result) {
 				strcpy(bkp, linha);
 				tokens = strtok(linha, sep);
 				while(tokens != NULL) {
+					// linha que será desconsiderada no backup para efetuar a remoção
 					if (cpf == atoi(tokens)) {
+						// variável de controle = 0 para garantir
 						controle = 0;
 					}
 					break;
 				}
+				// volta o controle para 1 e acaba a cópia dos valores
 				if (controle == 1)
 					strcat(dados, bkp);
 				else
@@ -211,11 +219,13 @@ void pesquisarNoArquivo(char *arquivo, int cpf) {
 		printf("Falha ao abrir arquivo de pesquisa!\n");
 	else {
 		while (!feof(file)) {
+			// monta a linha
 			result = fgets(linha, 100, file);
 			if (result) {
 				tokens = strtok(linha, sep);
 				index = 0;
 				while(tokens != NULL) {
+					// cpf é o primeiro valor no arquivo e por isso index deve ser 0
 					if (cpf != atoi(tokens) && index == 0) {
 						break;
 					}
