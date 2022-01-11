@@ -3,6 +3,7 @@
 
 void MesclarDados(Lista *l, Pagina **btree);
 void pesquisarNoArquivo(char *arquivo, int cpf);
+void removerNoArquivo(char *arquivo, int cpf, char *dados);
 
 int main() {
 	/*=====================================================
@@ -13,7 +14,7 @@ int main() {
 	Record r;
 	Pagina *btree = CreateBTree();
 	
-	FILE *nome, *cpf;
+	FILE *nome, *cpf, *file;
 	char *result, linha[100];
 	int cpfs[1000];
 
@@ -57,6 +58,7 @@ int main() {
 	/*=====================================================*/
 
 	// menu
+	char *palavras;
 	int opcao;
 	do {
 		printf("\nMENU\n");
@@ -74,8 +76,21 @@ int main() {
 			
 			case 2:
 				printf("#REMOVER\n");
-				// lerArquivo(r.nome, r.key);
-				remove(r.nome);
+				printf("CPF que deseja remover: ");
+				scanf("%d", &r.key);
+				Pesquisa(btree, &r);
+				if (r.key != -1) {
+					printf("Diretório -> %s\nCliente: ", r.nome);
+					palavras = (char*)malloc(500 * sizeof(char));
+					removerNoArquivo(r.nome, r.key, palavras);
+					file = fopen(r.nome, "w");
+					if (file != NULL) {
+						printf("%s ", palavras);
+						fputs(palavras, file);
+					}
+					// remove(r.nome);
+				}
+				fclose(file);
 				break;
 
 			case 3:
@@ -145,6 +160,41 @@ void MesclarDados(Lista *l, Pagina **btree) {
 
 		aux = aux->prox;
 	}
+}
+
+void removerNoArquivo(char *arquivo, int cpf, char *dados) {
+	FILE *file;
+	char bkp[80];
+	int controle = 1;
+	char *result, linha[100];
+	const char sep[] = "-";
+	char *tokens;
+
+	file = fopen(arquivo, "r");
+
+	// abrir arquivos da pesquisa
+	if (file == NULL)
+		printf("Falha ao abrir arquivo de pesquisa!\n");
+	else {
+		while (!feof(file)) {
+			result = fgets(linha, 100, file);
+			if (result) {
+				strcpy(bkp, linha);
+				tokens = strtok(linha, sep);
+				while(tokens != NULL) {
+					if (cpf == atoi(tokens)) {
+						controle = 0;
+					}
+					break;
+				}
+				if (controle == 1)
+					strcat(dados, bkp);
+				else
+					controle = 1;
+			}
+		}
+	}
+	fclose(file);
 }
 
 void pesquisarNoArquivo(char *arquivo, int cpf) {
